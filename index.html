@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Birthday Surprise</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: #fef6e4;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    #clickBtn {
+      padding: 15px 30px;
+      font-size: 20px;
+      border: none;
+      border-radius: 25px;
+      background-color: #ffb703;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #clickBtn:hover {
+      background-color: #fb8500;
+    }
+
+    #character {
+      width: 200px;  /* Adjust image size */
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    #message {
+      margin-top: 10px;
+      font-size: 60px;
+      font-weight: bold;
+      color: #219ebc;
+      height: 80px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="clickBtn">Click me!</button>
+
+  <!-- 👓 Custom Character Image -->
+  <img id="character" src="image.png" alt="Character" />
+
+  <!-- 🎉 Message -->
+  <div id="message"></div>
+
+  <!-- 🎵 Background Music -->
+  <audio id="bgMusic" src="song.mp3" preload="auto"></audio>
+
+  <!-- 🎉 Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.min.js"></script>
+
+  <script>
+    const btn = document.getElementById("clickBtn");
+    const message = document.getElementById("message");
+    const music = document.getElementById("bgMusic");
+    const character = document.getElementById("character");
+    const birthdayText = "Happy birthday!";
+
+    btn.addEventListener("click", () => {
+      btn.style.display = "none";
+      character.style.display = "block";
+      message.style.display = "block";
+      message.textContent = "";
+
+      let index = 0;
+      const interval = setInterval(() => {
+        message.textContent += birthdayText[index];
+        index++;
+        if (index === birthdayText.length) {
+          clearInterval(interval);
+        }
+      }, 150);
+
+      music.play();
+
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    });
+  </script>
+
+</body>
+</html>
