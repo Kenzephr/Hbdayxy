@@ -14,17 +14,20 @@
       flex-direction: column;
       background: #fef6e4;
       font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 20px;
     }
 
     #clickBtn {
-      padding: 15px 30px;
-      font-size: 20px;
+      padding: 12px 24px;
+      font-size: 5vw;
       border: none;
       border-radius: 25px;
       background-color: #ffb703;
       color: white;
       cursor: pointer;
       transition: background-color 0.3s;
+      max-width: 80%;
     }
 
     #clickBtn:hover {
@@ -32,18 +35,26 @@
     }
 
     #character {
-      width: 200px;  /* Adjust image size */
+      width: 60vw;
+      max-width: 250px;
       margin-bottom: 15px;
       display: none;
     }
 
     #message {
       margin-top: 10px;
-      font-size: 60px;
+      font-size: 8vw;
       font-weight: bold;
       color: #219ebc;
-      height: 80px;
       display: none;
+      word-break: break-word;
+    }
+
+    /* Optional tweak for very small screens */
+    @media (max-width: 360px) {
+      #message {
+        font-size: 10vw;
+      }
     }
   </style>
 </head>
