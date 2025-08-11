@@ -19,14 +19,14 @@
     #clickBtn, #character, #message, #debug { position:relative; z-index:var(--ui-z); }
     #clickBtn {
       padding:15px 30px; font-size:20px; border:0; border-radius:25px;
-      background:#ffb703; color:#fff; cursor:pointer;
+      background:#ffb703; color:#fff; cursor:pointer; transition:filter .2s;
     }
-    #clickBtn:hover { background:#fb8500; }
+    #clickBtn:hover { filter:brightness(0.95); }
     #character { width:300px; margin:12px 0 6px; display:none; }
     #message { margin-top:6px; font-size:48px; font-weight:700; color:#219ebc; min-height:64px; display:none; text-align:center; }
     #debug {
       position: fixed; left:10px; bottom:10px; background:#000; color:#0f0; font:12px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
-      padding:8px 10px; border-radius:8px; opacity:.9; max-width:60vw; white-space:pre-wrap;
+      padding:8px 10px; border-radius:8px; opacity:.9; max-width:70vw; max-height:40vh; overflow:auto; white-space:pre-wrap;
     }
   </style>
 </head>
@@ -37,24 +37,32 @@
 
   <!-- UI -->
   <button id="clickBtn">Click me!</button>
+  <!-- You can keep these src values; JS will also set them using ASSET_PATH -->
   <img id="character" src="image.png" alt="Character"/>
   <div id="message"></div>
   <audio id="bgMusic" src="song.mp3" preload="auto"></audio>
 
-  <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.min.js"></script>
+  <!-- Confetti (external) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.min.js" defer></script>
 
   <div id="debug">Status: page loaded ✔️</div>
 
   <script>
+    // ===== Config: change this if your files live in /assets =====
+    const ASSET_PATH = './'; // e.g. './' or 'assets/'
+
+    // ===== Debug helpers =====
     const dlog = (msg) => {
       const box = document.getElementById('debug');
       box.textContent = (box.textContent + "\n" + msg).trim();
+      box.scrollTop = box.scrollHeight;
     };
+    window.addEventListener('error', (e) => dlog('JS Error: ' + (e.message || e.filename)), true);
+    window.addEventListener('unhandledrejection', (e) => dlog('Unhandled promise rejection: ' + e.reason));
 
     dlog("JS running ✔️");
 
-    // ----- Basic canvas sanity check (if you see a purple "READY" banner, canvas works) -----
+    // ----- Canvas setup + sanity banner -----
     const c = document.getElementById('fwCanvas');
     const ctx = c.getContext('2d');
     function sizeCanvas() {
@@ -73,12 +81,28 @@
     window.addEventListener('resize', sizeCanvas, { passive:true });
     dlog("Canvas drawn ✔️ (violet READY banner visible)");
 
-    // ----- Your UI -----
+    // ----- Elements -----
     const btn = document.getElementById("clickBtn");
     const message = document.getElementById("message");
     const music = document.getElementById("bgMusic");
     const character = document.getElementById("character");
     const birthdayText = "Happy birthday Xiang Yi!";
+
+    // Force asset paths via JS too (helps when moving to /assets)
+    character.src = ASSET_PATH + 'image.png';
+    music.src = ASSET_PATH + 'song.mp3';
+
+    // File error listeners (very helpful on GitHub Pages)
+    character.addEventListener('error', () => dlog('ERROR: image not found at ' + character.src + ' (check name/path & case!)'));
+    music.addEventListener('error', () => dlog('ERROR: audio not found at ' + music.src + ' (check name/path & case!)'));
+
+    // External script error check
+    document.addEventListener('DOMContentLoaded', () => {
+      const confettiScript = document.querySelector('script[src*="confetti"]');
+      if (confettiScript) {
+        confettiScript.addEventListener('error', () => dlog('ERROR: confetti CDN failed to load'));
+      }
+    });
 
     btn.addEventListener("click", () => {
       dlog("Button clicked ✔️");
@@ -95,13 +119,17 @@
         if (i === birthdayText.length) clearInterval(interval);
       }, 120);
 
-      // music (don’t break if blocked)
-      music.play().then(()=>dlog("Music play() ok")).catch(()=>dlog("Music blocked (ok)"));
+      // music (may be blocked until user gesture; this is a click, so should work)
+      music.play().then(()=>dlog("Music play() ok")).catch((e)=>dlog("Music blocked or error: " + e.message));
 
-      // confetti
+      // confetti (guard if not loaded)
       try {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        dlog("Confetti launched ✔️");
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+          dlog("Confetti launched ✔️");
+        } else {
+          dlog("Confetti not available (script not loaded)");
+        }
       } catch (e) {
         dlog("Confetti error: " + e.message);
       }
@@ -132,7 +160,7 @@
         fireworkShardBaseVel: 4, fireworkShardAddedVel: 2,
         fireworkShardBaseSize: 3, fireworkShardAddedSize: 3,
         gravity: 0.1,
-        // Tweaked balloon settings so you see them quickly
+        // Faster balloon timings so they appear quickly
         letterContemplatingWaitTime: 60,
         balloonSpawnTime: 10,
         balloonBaseInflateTime: 10, balloonAddedInflateTime: 10,
@@ -315,7 +343,7 @@
         ctx.bezierCurveTo(x + size/4, y - size, x + size/2, y - size/2, x, y);
       }
 
-      // Build letters grid
+      // Build letters grid (centered)
       for (let i = 0; i < opts.strings.length; ++i) {
         for (let j = 0; j < opts.strings[i].length; ++j) {
           letters.push(new Letter(
